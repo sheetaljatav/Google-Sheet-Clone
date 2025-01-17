@@ -544,3 +544,40 @@ function findAndReplace(findText, replaceText) {
     });
 }
 
+function saveSpreadsheet() {
+    const cells = document.querySelectorAll('input');
+    const data = Array.from(cells).map(cell => ({
+        row: cell.dataset.row,
+        col: cell.dataset.col,
+        value: cell.value
+    }));
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'spreadsheet.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function loadSpreadsheet() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.addEventListener('change', event => {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+            const data = JSON.parse(reader.result);
+            data.forEach(cellData => {
+                const cell = document.querySelector(`input[data-row="${cellData.row}"][data-col="${cellData.col}"]`);
+                if (cell) {
+                    cell.value = cellData.value;
+                }
+            });
+        };
+        reader.readAsText(file);
+    });
+    input.click();
+}
+
